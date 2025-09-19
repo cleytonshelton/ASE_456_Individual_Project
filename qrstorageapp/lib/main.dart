@@ -2,23 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-void main() {
-  runApp(const QRStorageApp());
-}
-
-class QRStorageApp extends StatelessWidget {
-  const QRStorageApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'QR Storage',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const HomeScreen(),
-    );
-  }
-}
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -27,8 +10,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
   final List<Map<String, dynamic>> _items = [];
 
+  // --- Add an item after scanning QR or using camera ---
   Future<void> _addItem(String qrCode) async {
     final ImagePicker picker = ImagePicker();
     final XFile? photo = await picker.pickImage(source: ImageSource.camera);
@@ -40,11 +25,35 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // --- Simulated QR Scan (replace with real QR scanner later) ---
   void _scanQRCode() async {
-    // TODO: integrate qr_code_scanner or mobile_scanner package
-    // For now, we’ll simulate with a fake QR code
     String fakeQrCode = "Box-${_items.length + 1}";
     await _addItem(fakeQrCode);
+  }
+
+  // --- Pick just a photo (camera button) ---
+  Future<void> _takePhotoOnly() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? photo = await picker.pickImage(source: ImageSource.camera);
+
+    if (photo != null) {
+      setState(() {
+        _items.add({'qr': "Photo-${_items.length + 1}", 'image': photo.path});
+      });
+    }
+  }
+
+  // --- Handle bottom nav tap ---
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    if (index == 1) {
+      _scanQRCode();
+    } else if (index == 2) {
+      _takePhotoOnly();
+    }
   }
 
   @override
@@ -52,7 +61,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text("QR Storage")),
       body: _items.isEmpty
-          ? const Center(child: Text("No items yet. Scan a QR to add one."))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 100,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    "No items yet.\nScan a QR or take a photo.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
           : ListView.builder(
               itemCount: _items.length,
               itemBuilder: (context, index) {
@@ -70,9 +96,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _scanQRCode,
-        child: const Icon(Icons.qr_code_scanner),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code_scanner),
+            label: "Scan QR",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera_alt),
+            label: "Camera",
+          ),
+        ],
       ),
     );
   }
