@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("QR Storage")),
+      appBar: AppBar(title: const Text("My Boxes")),
       body: _items.isEmpty
           ? Center(
               child: Column(
