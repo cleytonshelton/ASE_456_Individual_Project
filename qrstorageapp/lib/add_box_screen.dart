@@ -32,7 +32,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
     if (widget.box.isEmpty) {
       return "001";
     }
-    
+
     // Find the highest existing box number
     int maxNumber = 0;
     for (int i = 0; i < widget.box.length; i++) {
@@ -43,7 +43,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
         maxNumber = number;
       }
     }
-    
+
     // Return next number with zero padding
     return (maxNumber + 1).toString().padLeft(3, '0');
   }
@@ -52,7 +52,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
   Future<void> _addPhotoFromCamera() async {
     final picker = ImagePicker();
     final photo = await picker.pickImage(source: ImageSource.camera);
-    
+
     if (photo != null) {
       setState(() {
         _imagePaths.add(photo.path);
@@ -64,7 +64,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
   Future<void> _addPhotoFromGallery() async {
     final picker = ImagePicker();
     final photo = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (photo != null) {
       setState(() {
         _imagePaths.add(photo.path);
@@ -93,13 +93,15 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
       final boxNumber = _getNextBoxNumber();
       final newItem = BoxItem(
         boxNumber: boxNumber,
-        title: _titleController.text.trim().isNotEmpty ? _titleController.text.trim() : null,
+        title: _titleController.text.trim().isNotEmpty
+            ? _titleController.text.trim()
+            : null,
         description: _descriptionController.text.trim(),
         imagePaths: List.from(_imagePaths),
       );
-      
+
       widget.box.add(newItem);
-      
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(

@@ -20,7 +20,7 @@ class BoxItemAdapter extends TypeAdapter<BoxItem> {
       boxNumber: fields[0] as String,
       title: fields[1] as String?,
       description: fields[2] as String,
-      imagePaths: (fields[3] as List).cast<String>(),
+      imagePaths: (fields[3] as List?)?.cast<String>(),
     );
   }
 

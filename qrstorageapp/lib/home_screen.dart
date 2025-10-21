@@ -21,22 +21,18 @@ class _HomeScreenState extends State<HomeScreen> {
     _box = Hive.box<BoxItem>('boxes');
   }
 
-
   // Navigate to add box screen
   void _navigateToAddBox() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => AddBoxScreen(box: _box),
-      ),
+      MaterialPageRoute(builder: (context) => AddBoxScreen(box: _box)),
     );
   }
-
 
   // Delete a box with confirmation
   Future<void> _deleteBox(int index) async {
     final item = _box.getAt(index)!;
-    
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -51,18 +47,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
       ),
     );
-    
+
     if (confirmed == true) {
       _box.deleteAt(index);
-      
+
       // Show confirmation snackbar
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -146,11 +140,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(12),
                         ),
-                        child: Image.file(
-                          File(item.imagePaths.first),
+                        child: Container(
                           width: double.infinity,
                           height: double.infinity,
-                          fit: BoxFit.cover,
+                          color: Colors
+                              .grey[200], // optional background to match empty boxes
+                          child:
+                              item.imagePaths != null &&
+                                  item.imagePaths!.isNotEmpty
+                              ? Image.file(
+                                  File(item.imagePaths!.first),
+                                  fit: BoxFit.cover,
+                                )
+                              : const Center(
+                                  child: Icon(
+                                    Icons.inventory_2_outlined,
+                                    size: 50, // adjust size if needed
+                                    color: Colors.grey,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -237,10 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box),
-            label: "Add Box",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.add_box), label: "Add Box"),
         ],
       ),
     );

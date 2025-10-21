@@ -14,13 +14,13 @@ class BoxItem extends HiveObject {
   String description;
 
   @HiveField(3)
-  List<String> imagePaths;
+  List<String>? imagePaths;
 
   BoxItem({
     required this.boxNumber,
     this.title,
     required this.description,
-    required this.imagePaths,
+    this.imagePaths,
   });
 
   // Getter to provide a default title if null
