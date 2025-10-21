@@ -5,15 +5,22 @@ import 'home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  print('1️⃣ Widgets initialized.');
 
-  // Initialize Hive and register adapters
   await Hive.initFlutter();
-  Hive.registerAdapter(BoxItemAdapter());
+  print('2️⃣ Hive initialized.');
 
-  // Open a box (like a database table) for BoxItem objects
+  await Hive.deleteFromDisk(); // Keep temporarily
+  print('3️⃣ Hive storage cleared.');
+
+  Hive.registerAdapter(BoxItemAdapter());
+  print('4️⃣ Adapter registered.');
+
   await Hive.openBox<BoxItem>('boxes');
+  print('5️⃣ Box opened.');
 
   runApp(const MyApp());
+  print('6️⃣ runApp called.');
 }
 
 class MyApp extends StatelessWidget {
@@ -22,7 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'QR Box Tracker',
+      title: 'Box Tracker',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const HomeScreen(),
     );
