@@ -5,17 +5,24 @@ part 'box_item.g.dart'; // Hive will generate this file
 @HiveType(typeId: 0)
 class BoxItem extends HiveObject {
   @HiveField(0)
-  String qr;
+  String boxNumber;
 
   @HiveField(1)
-  String description;
+  String? title;
 
   @HiveField(2)
-  List<String> imagePaths;
+  String description;
+
+  @HiveField(3)
+  List<String>? imagePaths;
 
   BoxItem({
-    required this.qr,
+    required this.boxNumber,
+    this.title,
     required this.description,
-    required this.imagePaths,
+    this.imagePaths,
   });
+
+  // Getter to provide a default title if null
+  String get displayTitle => title ?? "Box #$boxNumber";
 }

@@ -17,21 +17,24 @@ class BoxItemAdapter extends TypeAdapter<BoxItem> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return BoxItem(
-      qr: fields[0] as String,
-      description: fields[1] as String,
-      imagePaths: (fields[2] as List).cast<String>(),
+      boxNumber: fields[0] as String,
+      title: fields[1] as String?,
+      description: fields[2] as String,
+      imagePaths: (fields[3] as List?)?.cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, BoxItem obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
-      ..write(obj.qr)
+      ..write(obj.boxNumber)
       ..writeByte(1)
-      ..write(obj.description)
+      ..write(obj.title)
       ..writeByte(2)
+      ..write(obj.description)
+      ..writeByte(3)
       ..write(obj.imagePaths);
   }
 
