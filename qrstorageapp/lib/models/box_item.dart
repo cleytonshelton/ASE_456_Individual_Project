@@ -8,14 +8,21 @@ class BoxItem extends HiveObject {
   String boxNumber;
 
   @HiveField(1)
-  String description;
+  String? title;
 
   @HiveField(2)
+  String description;
+
+  @HiveField(3)
   List<String> imagePaths;
 
   BoxItem({
     required this.boxNumber,
+    this.title,
     required this.description,
     required this.imagePaths,
   });
+
+  // Getter to provide a default title if null
+  String get displayTitle => title ?? "Box #$boxNumber";
 }

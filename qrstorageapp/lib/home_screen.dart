@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'models/box_item.dart';
+import 'add_box_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,101 +21,66 @@ class _HomeScreenState extends State<HomeScreen> {
     _box = Hive.box<BoxItem>('boxes');
   }
 
-  // Add an item with photo + auto-assigned box number
-  Future<void> _addItem(String description) async {
-    final picker = ImagePicker();
-    final photo = await picker.pickImage(source: ImageSource.camera);
 
-    if (photo != null) {
-      // Auto-assign box number (incrementing from existing boxes)
-      final nextBoxNumber = _getNextBoxNumber();
-      
-      final newItem = BoxItem(
-        boxNumber: nextBoxNumber,
-        description: description,
-        imagePaths: [photo.path],
-      );
-      _box.add(newItem);
-    }
+  // Navigate to add box screen
+  void _navigateToAddBox() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddBoxScreen(box: _box),
+      ),
+    );
   }
 
-  // Get the next available box number
-  String _getNextBoxNumber() {
-    if (_box.isEmpty) {
-      return "001";
-    }
-    
-    // Find the highest existing box number
-    int maxNumber = 0;
-    for (int i = 0; i < _box.length; i++) {
-      final item = _box.getAt(i)!;
-      final numberStr = item.boxNumber.replaceAll(RegExp(r'[^0-9]'), '');
-      final number = int.tryParse(numberStr) ?? 0;
-      if (number > maxNumber) {
-        maxNumber = number;
-      }
-    }
-    
-    // Return next number with zero padding
-    return (maxNumber + 1).toString().padLeft(3, '0');
-  }
 
-  // Show dialog to input box description
-  void _showAddBoxDialog() async {
-    final TextEditingController descriptionController = TextEditingController();
+  // Delete a box with confirmation
+  Future<void> _deleteBox(int index) async {
+    final item = _box.getAt(index)!;
     
-    final result = await showDialog<String>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add New Box'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Describe the contents of this box:'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: descriptionController,
-              decoration: const InputDecoration(
-                hintText: 'e.g., Winter clothes, Kitchen utensils, etc.',
-                border: OutlineInputBorder(),
-                labelText: 'Description',
-              ),
-              maxLines: 2,
-              textCapitalization: TextCapitalization.sentences,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Box number will be assigned automatically',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
+        title: const Text('Delete Box'),
+        content: Text(
+          'Are you sure you want to delete Box #${item.boxNumber}?\n\nThis action cannot be undone.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              if (descriptionController.text.trim().isNotEmpty) {
-                Navigator.pop(context, descriptionController.text.trim());
-              }
-            },
-            child: const Text('Add Box'),
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
     
-    if (result != null && result.isNotEmpty) {
-      await _addItem(result);
+    if (confirmed == true) {
+      _box.deleteAt(index);
+      
+      // Show confirmation snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Box #${item.boxNumber} deleted'),
+            duration: const Duration(seconds: 2),
+            action: SnackBarAction(
+              label: 'Undo',
+              onPressed: () {
+                // Add the item back at the same index
+                _box.putAt(index, item);
+              },
+            ),
+          ),
+        );
+      }
     }
   }
-
 
   // Handle bottom nav bar tap
   void _onItemTapped(int index) {
@@ -124,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     if (index == 1) {
-      _showAddBoxDialog();
+      _navigateToAddBox();
     }
   }
 
@@ -184,6 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Image.file(
                           File(item.imagePaths.first),
                           width: double.infinity,
+                          height: double.infinity,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -191,30 +157,70 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       height: 80,
                       padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Row(
                         children: [
-                          Text(
-                            "Box #${item.boxNumber}",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
                           Expanded(
-                            child: Text(
-                              item.description,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  item.displayTitle,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  "Box #${item.boxNumber}",
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    item.description,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
+                          PopupMenuButton<String>(
+                            icon: const Icon(
+                              Icons.more_vert,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            onSelected: (value) {
+                              if (value == 'delete') {
+                                _deleteBox(index);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem<String>(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.delete, color: Colors.red),
+                                    SizedBox(width: 8),
+                                    Text('Delete Box'),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
