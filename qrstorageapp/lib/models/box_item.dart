@@ -5,7 +5,7 @@ part 'box_item.g.dart'; // Hive will generate this file
 @HiveType(typeId: 0)
 class BoxItem extends HiveObject {
   @HiveField(0)
-  String qr;
+  String boxNumber;
 
   @HiveField(1)
   String description;
@@ -14,7 +14,7 @@ class BoxItem extends HiveObject {
   List<String> imagePaths;
 
   BoxItem({
-    required this.qr,
+    required this.boxNumber,
     required this.description,
     required this.imagePaths,
   });

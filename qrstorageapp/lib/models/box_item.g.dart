@@ -17,7 +17,7 @@ class BoxItemAdapter extends TypeAdapter<BoxItem> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return BoxItem(
-      qr: fields[0] as String,
+      boxNumber: fields[0] as String,
       description: fields[1] as String,
       imagePaths: (fields[2] as List).cast<String>(),
     );
@@ -28,7 +28,7 @@ class BoxItemAdapter extends TypeAdapter<BoxItem> {
     writer
       ..writeByte(3)
       ..writeByte(0)
-      ..write(obj.qr)
+      ..write(obj.boxNumber)
       ..writeByte(1)
       ..write(obj.description)
       ..writeByte(2)
