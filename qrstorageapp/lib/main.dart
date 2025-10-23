@@ -10,9 +10,6 @@ Future<void> main() async {
   await Hive.initFlutter();
   print('2️⃣ Hive initialized.');
 
-  await Hive.deleteFromDisk(); // Keep temporarily
-  print('3️⃣ Hive storage cleared.');
-
   Hive.registerAdapter(BoxItemAdapter());
   print('4️⃣ Adapter registered.');
 
