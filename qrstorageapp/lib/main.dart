@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'models/box_item.dart';
 import 'home_screen.dart';
+import 'theme_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +18,13 @@ Future<void> main() async {
   await Hive.openBox<BoxItem>('boxes');
   print('5️⃣ Box opened.');
 
-  runApp(const MyApp());
+  // Initialize theme manager
+  final themeManager = ThemeManager();
+  await themeManager.init();
+
+  runApp(
+    ChangeNotifierProvider.value(value: themeManager, child: const MyApp()),
+  );
   print('6️⃣ runApp called.');
 }
 
@@ -25,9 +33,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = Provider.of<ThemeManager>(context);
+
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Box Tracker',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      themeMode: themeManager.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primarySwatch: Colors.blue,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.blue,
+          secondary: Colors.tealAccent,
+        ),
+      ),
       home: const HomeScreen(),
     );
   }
