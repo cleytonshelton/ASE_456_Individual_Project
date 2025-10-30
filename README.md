@@ -132,7 +132,7 @@ lib/
 - [ ] Edit box descriptions and photos
 - [x] Delete boxes
 - [ ] Categories and tags
-- [ ] Dark mode support
+- [x] Dark mode support
 
 ## Acknowledgments
 
