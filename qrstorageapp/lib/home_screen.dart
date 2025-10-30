@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:qrstorageapp/theme_manager.dart';
+import 'package:provider/provider.dart';
 import 'models/box_item.dart';
 import 'add_box_screen.dart';
 
@@ -90,7 +92,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Box Tracker")),
+      appBar: AppBar(
+        title: const Text("Box Tracker"),
+        actions: [
+          Consumer<ThemeManager>(
+            builder: (context, themeManager, _) {
+              return IconButton(
+                icon: Icon(
+                  themeManager.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                ),
+                tooltip: themeManager.isDarkMode
+                    ? 'Switch to Light Mode'
+                    : 'Switch to Dark Mode',
+                onPressed: () => themeManager.toggleTheme(),
+              );
+            },
+          ),
+        ],
+      ),
       body: ValueListenableBuilder(
         valueListenable: _box.listenable(),
         builder: (context, Box<BoxItem> box, _) {
