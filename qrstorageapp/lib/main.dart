@@ -41,14 +41,22 @@ class MyApp extends StatelessWidget {
       themeMode: themeManager.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         brightness: Brightness.light,
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
       ),
+
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        colorScheme: const ColorScheme.dark(
-          primary: Colors.blue,
-          secondary: Colors.tealAccent,
-        ),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark,
+        ).copyWith(surface: const Color(0xFF1E1E1E), onSurface: Colors.white70),
+        scaffoldBackgroundColor: const Color(0xFF1C1C1C),
+        cardColor: const Color(0xFF2A2A2A),
+        useMaterial3: true,
       ),
       home: const HomeScreen(),
     );
