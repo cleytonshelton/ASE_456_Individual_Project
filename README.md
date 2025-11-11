@@ -129,6 +129,7 @@ lib/
 ## Future Enhancements
 
 - [ ] Search functionality for boxes
+- [x] Box detail page
 - [ ] Edit box descriptions and photos
 - [x] Delete boxes
 - [ ] Categories and tags
