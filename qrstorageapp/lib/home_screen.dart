@@ -90,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Box Tracker"),
+        title: const Text("Packed Boxes"),
         actions: [
           Consumer<ThemeManager>(
             builder: (context, themeManager, _) {
@@ -195,63 +195,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    item.displayTitle,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    "Box #${item.boxNumber}",
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.blue,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Expanded(
+                                  Center(
                                     child: Text(
-                                      item.description,
+                                      item.displayTitle,
                                       style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                       ),
-                                      maxLines: 2,
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  const SizedBox(height: 2),
                                 ],
                               ),
-                            ),
-                            PopupMenuButton<String>(
-                              icon: const Icon(
-                                Icons.more_vert,
-                                color: Colors.grey,
-                                size: 20,
-                              ),
-                              onSelected: (value) {
-                                if (value == 'delete') {
-                                  _deleteBox(index);
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem<String>(
-                                  value: 'delete',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.delete, color: Colors.red),
-                                      SizedBox(width: 8),
-                                      Text('Delete Box'),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                         ),

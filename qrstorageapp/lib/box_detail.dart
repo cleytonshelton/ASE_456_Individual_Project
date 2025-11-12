@@ -20,9 +20,14 @@ class BoxDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Big title
-            Text(
-              item.displayTitle,
-              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            Center(
+              child: Text(
+                item.displayTitle,
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
 
             const SizedBox(height: 20),
