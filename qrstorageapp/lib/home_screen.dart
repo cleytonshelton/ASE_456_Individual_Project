@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:qrstorageapp/theme_manager.dart';
 import 'package:provider/provider.dart';
+import 'package:qrstorageapp/theme_manager.dart';
 import 'models/box_item.dart';
 import 'add_box_screen.dart';
+import 'box_detail.dart'; // ✅ NEW IMPORT
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _box = Hive.box<BoxItem>('boxes');
   }
 
-  // Navigate to add box screen
   void _navigateToAddBox() {
     Navigator.push(
       context,
@@ -31,11 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Delete a box with confirmation
   Future<void> _deleteBox(int index) async {
     final item = _box.getAt(index)!;
 
-    final confirmed = await showDialog<bool>(
+    bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Box'),
@@ -56,44 +55,49 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
+    if (!mounted) return;
     if (confirmed == true) {
-      _box.deleteAt(index);
+      await _box.deleteAt(index);
 
-      // Show confirmation snackbar
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Box #${item.boxNumber} deleted'),
-            duration: const Duration(seconds: 2),
-            action: SnackBarAction(
-              label: 'Undo',
-              onPressed: () {
-                // Add the item back at the same index
-                _box.putAt(index, item);
-              },
-            ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Box #${item.boxNumber} deleted'),
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              _box.putAt(index, item);
+            },
           ),
-        );
-      }
+        ),
+      );
+    } else {
+      if (!mounted) return;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BoxDetailScreen(item: item, index: index),
+        ),
+      );
     }
   }
 
-  // Handle bottom nav bar tap
   void _onItemTapped(int index) {
+    if (index == 1) {
+      _navigateToAddBox();
+      return;
+    }
+
     setState(() {
       _selectedIndex = index;
     });
-
-    if (index == 1) {
-      _navigateToAddBox();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Box Tracker"),
+        title: const Text("Packed Boxes"),
         actions: [
           Consumer<ThemeManager>(
             builder: (context, themeManager, _) {
@@ -101,9 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icon(
                   themeManager.isDarkMode ? Icons.dark_mode : Icons.light_mode,
                 ),
-                tooltip: themeManager.isDarkMode
-                    ? 'Switch to Light Mode'
-                    : 'Switch to Dark Mode',
                 onPressed: () => themeManager.toggleTheme(),
               );
             },
@@ -145,114 +146,87 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: box.length,
             itemBuilder: (context, index) {
               final item = box.getAt(index)!;
-              return Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
-                        child: Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          color: Colors
-                              .grey[200], // optional background to match empty boxes
-                          child:
-                              item.imagePaths != null &&
-                                  item.imagePaths!.isNotEmpty
-                              ? Image.file(
-                                  File(item.imagePaths!.first),
-                                  fit: BoxFit.cover,
-                                )
-                              : const Center(
-                                  child: Icon(
-                                    Icons.inventory_2_outlined,
-                                    size: 50, // adjust size if needed
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                        ),
-                      ),
+
+              return InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          BoxDetailScreen(item: item, index: index),
                     ),
-                    Container(
-                      height: 80,
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  item.displayTitle,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  "Box #${item.boxNumber}",
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    item.description,
-                                    style: const TextStyle(
-                                      fontSize: 11,
+                  );
+
+                  if (result == 'delete') {
+                    _deleteBox(index);
+                  }
+                },
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12),
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: Colors.grey[200],
+                            child:
+                                item.imagePaths != null &&
+                                    item.imagePaths!.isNotEmpty
+                                ? Image.file(
+                                    File(item.imagePaths!.first),
+                                    fit: BoxFit.cover,
+                                  )
+                                : const Center(
+                                    child: Icon(
+                                      Icons.inventory_2_outlined,
+                                      size: 50,
                                       color: Colors.grey,
                                     ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                              ],
-                            ),
                           ),
-                          PopupMenuButton<String>(
-                            icon: const Icon(
-                              Icons.more_vert,
-                              color: Colors.grey,
-                              size: 20,
-                            ),
-                            onSelected: (value) {
-                              if (value == 'delete') {
-                                _deleteBox(index);
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              const PopupMenuItem<String>(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.delete, color: Colors.red),
-                                    SizedBox(width: 8),
-                                    Text('Delete Box'),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                      Container(
+                        height: 80,
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Center(
+                                    child: Text(
+                                      item.displayTitle,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

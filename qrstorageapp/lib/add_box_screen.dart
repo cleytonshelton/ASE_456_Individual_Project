@@ -133,7 +133,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Box'),
+        title: const Text('Pack A Box'),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _saveBox,
@@ -159,7 +159,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
                 controller: _titleController,
                 decoration: const InputDecoration(
                   labelText: 'Box Title',
-                  hintText: 'e.g., Winter Clothes, Kitchen Items',
+                  hintText: 'e.g., Holiday Decor, Craft Supplies...',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.title),
                 ),
@@ -177,7 +177,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
                 controller: _descriptionController,
                 decoration: const InputDecoration(
                   labelText: 'Description *',
-                  hintText: 'Describe the contents of this box in detail',
+                  hintText: 'What would you like to add to this box?',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.description),
                 ),

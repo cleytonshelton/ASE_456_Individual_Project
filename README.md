@@ -128,11 +128,16 @@ lib/
 
 ## Future Enhancements
 
-- [ ] Search functionality for boxes
+- [ ] Search functionality for boxes (looking for something...)
+- [x] Box detail page
 - [ ] Edit box descriptions and photos
 - [x] Delete boxes
 - [ ] Categories and tags
 - [x] Dark mode support
+- [ ] Home page box card photo slide show 
+- [ ] Change default box image 
+- [ ] Add Favorite boxes
+- [ ] Add location (garage,attic, basement)
 
 ## Acknowledgments
 
