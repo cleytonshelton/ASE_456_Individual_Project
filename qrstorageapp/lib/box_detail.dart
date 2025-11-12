@@ -5,15 +5,52 @@ import 'full_image.dart';
 
 class BoxDetailScreen extends StatelessWidget {
   final BoxItem item;
+  final int index;
 
-  const BoxDetailScreen({super.key, required this.item});
+  const BoxDetailScreen({super.key, required this.item, required this.index});
 
   @override
   Widget build(BuildContext context) {
     final hasPhotos = item.imagePaths != null && item.imagePaths!.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(title: Text("Box: ${item.boxNumber}")),
+      appBar: AppBar(
+        title: Text("Box: ${item.boxNumber}"),
+        actions: [
+          PopupMenuButton(
+            icon: const Icon(Icons.more_horiz),
+            onSelected: (value) async {
+              if (value == 'edit') {
+                return;
+              } else if (value == 'delete') {
+                Navigator.pop(context, 'delete');
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('Edit Box'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Delete Box'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _deleteBox(int index) async {
     final item = _box.getAt(index)!;
 
-    final confirmed = await showDialog<bool>(
+    bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Box'),
@@ -55,23 +55,30 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
+    if (!mounted) return;
     if (confirmed == true) {
-      _box.deleteAt(index);
+      await _box.deleteAt(index);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Box #${item.boxNumber} deleted'),
-            duration: const Duration(seconds: 2),
-            action: SnackBarAction(
-              label: 'Undo',
-              onPressed: () {
-                _box.putAt(index, item);
-              },
-            ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Box #${item.boxNumber} deleted'),
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              _box.putAt(index, item);
+            },
           ),
-        );
-      }
+        ),
+      );
+    } else {
+      if (!mounted) return;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BoxDetailScreen(item: item, index: index),
+        ),
+      );
     }
   }
 
@@ -142,13 +149,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
               return InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BoxDetailScreen(item: item),
+                      builder: (context) =>
+                          BoxDetailScreen(item: item, index: index),
                     ),
                   );
+
+                  if (result == 'delete') {
+                    _deleteBox(index);
+                  }
                 },
                 child: Card(
                   elevation: 4,
