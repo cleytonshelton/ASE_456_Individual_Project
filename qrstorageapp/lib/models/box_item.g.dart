@@ -21,13 +21,14 @@ class BoxItemAdapter extends TypeAdapter<BoxItem> {
       title: fields[1] as String?,
       description: fields[2] as String,
       imagePaths: (fields[3] as List?)?.cast<String>(),
+      location: fields[4] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, BoxItem obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.boxNumber)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class BoxItemAdapter extends TypeAdapter<BoxItem> {
       ..writeByte(2)
       ..write(obj.description)
       ..writeByte(3)
-      ..write(obj.imagePaths);
+      ..write(obj.imagePaths)
+      ..writeByte(4)
+      ..write(obj.location);
   }
 
   @override

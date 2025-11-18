@@ -16,11 +16,15 @@ class BoxItem extends HiveObject {
   @HiveField(3)
   List<String>? imagePaths;
 
+  @HiveField(4) // <-- NEW FIELD
+  String? location; // garage, basement, attic, etc.
+
   BoxItem({
     required this.boxNumber,
     this.title,
     required this.description,
     this.imagePaths,
+    this.location,
   });
 
   // Getter to provide a default title if null

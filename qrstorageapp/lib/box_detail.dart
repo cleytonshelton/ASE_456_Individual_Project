@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'models/box_item.dart';
 import 'full_image.dart';
+import 'add_box_screen.dart';
 
 class BoxDetailScreen extends StatelessWidget {
   final BoxItem item;
@@ -21,7 +23,31 @@ class BoxDetailScreen extends StatelessWidget {
             icon: const Icon(Icons.more_horiz),
             onSelected: (value) async {
               if (value == 'edit') {
-                return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AddBoxScreen(
+                      box: Hive.box<BoxItem>('boxes'),
+                      existingItem: item,
+                      existingIndex: index,
+                    ),
+                  ),
+                ).then((result) {
+                  if (result == 'updated') {
+                    // Reload updated item from Hive
+                    final box = Hive.box<BoxItem>('boxes');
+                    final updatedItem = box.getAt(index);
+
+                    // Rebuild the screen with new data
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            BoxDetailScreen(item: updatedItem!, index: index),
+                      ),
+                    );
+                  }
+                });
               } else if (value == 'delete') {
                 Navigator.pop(context, 'delete');
               }
@@ -118,6 +144,19 @@ class BoxDetailScreen extends StatelessWidget {
               item.description,
               style: const TextStyle(fontSize: 16, height: 1.4),
             ),
+            const SizedBox(height: 24),
+
+            if (item.location != null && item.location!.isNotEmpty) ...[
+              const Text(
+                "Location",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                item.location!,
+                style: const TextStyle(fontSize: 16, height: 1.4),
+              ),
+            ],
           ],
         ),
       ),

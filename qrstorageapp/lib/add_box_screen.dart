@@ -7,7 +7,16 @@ import 'models/box_item.dart';
 class AddBoxScreen extends StatefulWidget {
   final Box<BoxItem> box;
 
-  const AddBoxScreen({super.key, required this.box});
+  final BoxItem? existingItem;
+  final int? existingIndex;
+
+  AddBoxScreen({
+    super.key,
+    required this.box,
+
+    this.existingItem,
+    this.existingIndex,
+  });
 
   @override
   State<AddBoxScreen> createState() => _AddBoxScreenState();
@@ -17,13 +26,28 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _locationController = TextEditingController();
   final List<String> _imagePaths = [];
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 👇 If editing, pre-fill all fields
+    if (widget.existingItem != null) {
+      _titleController.text = widget.existingItem!.title ?? "";
+      _descriptionController.text = widget.existingItem!.description;
+      _locationController.text = widget.existingItem!.location ?? "";
+      _imagePaths.addAll(widget.existingItem!.imagePaths ?? []);
+    }
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -81,51 +105,67 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
 
   // Save the box
   Future<void> _saveBox() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      final boxNumber = _getNextBoxNumber();
-      final newItem = BoxItem(
-        boxNumber: boxNumber,
-        title: _titleController.text.trim().isNotEmpty
-            ? _titleController.text.trim()
-            : null,
-        description: _descriptionController.text.trim(),
-        imagePaths: List.from(_imagePaths),
-      );
-
-      widget.box.add(newItem);
-
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Box #$boxNumber created successfully!'),
-            backgroundColor: Colors.green,
-          ),
+      if (widget.existingItem == null) {
+        // ======================
+        // ADD MODE
+        // ======================
+        final boxNumber = _getNextBoxNumber();
+        final newItem = BoxItem(
+          boxNumber: boxNumber,
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          imagePaths: List.from(_imagePaths),
+          location: _locationController.text.trim(),
         );
+
+        widget.box.add(newItem);
+
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Box #$boxNumber created successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        // ======================
+        // EDIT MODE
+        // ======================
+        final updatedItem = BoxItem(
+          boxNumber: widget.existingItem!.boxNumber, // keep same number
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          imagePaths: List.from(_imagePaths),
+          location: _locationController.text.trim(),
+        );
+
+        widget.box.putAt(widget.existingIndex!, updatedItem);
+
+        if (mounted) {
+          Navigator.pop(context, "updated");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Box updated!'),
+              backgroundColor: Colors.blue,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error creating box: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() => _isLoading = false);
     }
   }
 
@@ -189,7 +229,19 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
                   return null;
                 },
               ),
+
               const SizedBox(height: 24),
+              // Location Field
+              TextFormField(
+                controller: _locationController,
+                decoration: const InputDecoration(
+                  labelText: 'Location (Optional)',
+                  hintText: 'Garage, Basement, Attic...',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.place),
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // Photos Section
               Row(
@@ -275,31 +327,31 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-
-              // Box Number Preview
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.blue.shade700),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Box number will be automatically assigned: #${_getNextBoxNumber()}',
-                        style: TextStyle(
-                          color: Colors.blue.shade700,
-                          fontWeight: FontWeight.w500,
+              if (widget.existingItem == null)
+                // Box Number Preview
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue.shade700),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Box number will be automatically assigned: #${_getNextBoxNumber()}',
+                          style: TextStyle(
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),

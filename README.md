@@ -130,14 +130,14 @@ lib/
 
 - [ ] Search functionality for boxes (looking for something...)
 - [x] Box detail page
-- [ ] Edit box descriptions and photos
+- [x] Edit box descriptions and photos
 - [x] Delete boxes
 - [ ] Categories and tags
 - [x] Dark mode support
 - [ ] Home page box card photo slide show 
 - [ ] Change default box image 
 - [ ] Add Favorite boxes
-- [ ] Add location (garage,attic, basement)
+- [x] Add location (garage,attic, basement)
 
 ## Acknowledgments
 
