@@ -26,6 +26,7 @@ backgroundColor: white
 - Add photos to the boxes
 - Clean UI
 - Box detail page
+- Dark Mode
 
 ---
 
@@ -41,7 +42,7 @@ backgroundColor: white
 ## What Went Wrong
 
 - Couldnt get QR codes to work
-- I had too many features in my head
+- I had too many unneeded features in my head 
 - Had to restructure my data model a few times
 
 ---
