@@ -16,7 +16,7 @@ backgroundColor: white
 
 - Moved around a lot in the past year, so I haven't unpacked many boxes
 - Moving again in May to Louisville, so no point to unpack
-- Needed a good way to track whats in each box without having to write all over each one
+- Needed a good way to track whats in each box without having to write all over each one (more than i have already)
 
 ---
 
@@ -40,15 +40,17 @@ backgroundColor: white
 
 ## What Went Wrong
 
-- Didn't spend much time on this project during sprint 1
 - Couldnt get QR codes to work
+- I had too many features in my head
+- Had to restructure my data model a few times
 
 ---
 
 ## What Went Well
 
-- Adding a box is easy
+- Adding a box is easy for the user
 - New features are easy to add
+- Clean UI
 
 
 ---
