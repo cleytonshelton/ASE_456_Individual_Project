@@ -16,12 +16,12 @@ class BoxItem extends HiveObject {
   @HiveField(3)
   List<String>? imagePaths;
 
-  @HiveField(4) // <-- NEW FIELD
+  @HiveField(4)
   String? location; // garage, basement, attic, etc.
 
-  @HiveField(5) // <-- NEW FIELD
+  @HiveField(5)
   bool isFavorite; // to mark favorite boxes
-  
+
   BoxItem({
     required this.boxNumber,
     this.title,

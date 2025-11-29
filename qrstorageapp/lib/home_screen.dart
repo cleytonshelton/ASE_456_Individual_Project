@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:qrstorageapp/theme_manager.dart';
 import 'models/box_item.dart';
 import 'add_box_screen.dart';
-import 'box_detail.dart'; // ✅ NEW IMPORT
+import 'box_detail.dart';
 
 class HomeScreen extends StatefulWidget {
   final Box<BoxItem>? box;

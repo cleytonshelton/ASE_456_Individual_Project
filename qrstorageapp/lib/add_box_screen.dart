@@ -35,7 +35,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
   void initState() {
     super.initState();
 
-    // 👇 If editing, pre-fill all fields
+    // If editing, pre-fill all fields
     if (widget.existingItem != null) {
       _titleController.text = widget.existingItem!.title ?? "";
       _descriptionController.text = widget.existingItem!.description;
@@ -145,6 +145,8 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
           description: _descriptionController.text.trim(),
           imagePaths: List.from(_imagePaths),
           location: _locationController.text.trim(),
+          // preserve favorite flag when editing
+          isFavorite: widget.existingItem!.isFavorite,
         );
 
         widget.box.putAt(widget.existingIndex!, updatedItem);
