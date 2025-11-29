@@ -8,7 +8,9 @@ import 'add_box_screen.dart';
 import 'box_detail.dart'; // ✅ NEW IMPORT
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Box<BoxItem>? box;
+
+  const HomeScreen({super.key, this.box});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -17,11 +19,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   late Box<BoxItem> _box;
+  String _searchQuery = "";
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _box = Hive.box<BoxItem>('boxes');
+    _box = widget.box ?? Hive.box<BoxItem>('boxes');
   }
 
   void _navigateToAddBox() {
@@ -97,8 +102,79 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Packed Boxes"),
+        automaticallyImplyLeading: false,
+        title: Consumer<ThemeManager>(
+          builder: (context, themeManager, _) {
+            final textColor = themeManager.isDarkMode
+                ? Colors.white
+                : Colors.black;
+            final hintColor = textColor.withOpacity(0.7);
+
+            // If searching → show expandable TextField
+            if (_isSearching) {
+              return TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: "Looking for something...",
+                  hintStyle: TextStyle(color: hintColor),
+                  border: InputBorder.none,
+                ),
+                style: TextStyle(color: textColor, fontSize: 18),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+              );
+            }
+
+            // If not searching → default title
+            return Text("Packed Boxes", style: TextStyle(color: textColor));
+          },
+        ),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+
+        leading: _isSearching
+            ? Consumer<ThemeManager>(
+                builder: (context, themeManager, _) {
+                  final iconColor = themeManager.isDarkMode
+                      ? Colors.white
+                      : Colors.black;
+                  return IconButton(
+                    icon: Icon(Icons.arrow_back, color: iconColor),
+                    onPressed: () {
+                      setState(() {
+                        _isSearching = false;
+                        _searchQuery = "";
+                        _searchController.clear();
+                      });
+                    },
+                  );
+                },
+              )
+            : null,
+
         actions: [
+          // 🔍 Search Icon (only when not searching)
+          if (!_isSearching)
+            Consumer<ThemeManager>(
+              builder: (context, themeManager, _) {
+                final iconColor = themeManager.isDarkMode
+                    ? Colors.white
+                    : Colors.black;
+                return IconButton(
+                  icon: Icon(Icons.search, color: iconColor),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = true;
+                    });
+                  },
+                );
+              },
+            ),
+
+          // 🌙 Theme toggle button
           Consumer<ThemeManager>(
             builder: (context, themeManager, _) {
               return IconButton(
@@ -111,127 +187,156 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: ValueListenableBuilder(
-        valueListenable: _box.listenable(),
-        builder: (context, Box<BoxItem> box, _) {
-          if (box.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.inventory_2_outlined,
-                    size: 100,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    "No boxes yet.\nAdd a box to get started.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
+      body: Column(
+        children: [
+          // 📦 GRID VIEW + HIVE LISTENING
+          Expanded(
+            child: ValueListenableBuilder(
+              valueListenable: _box.listenable(),
+              builder: (context, Box<BoxItem> box, _) {
+                // 🔎 FILTER HERE
+                final filtered = box.values.where((item) {
+                  final q = _searchQuery.toLowerCase();
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.75,
-            ),
-            itemCount: box.length,
-            itemBuilder: (context, index) {
-              final item = box.getAt(index)!;
+                  return item.displayTitle.toLowerCase().contains(q) ||
+                      item.description.toLowerCase().contains(q) ||
+                      (item.location ?? "").toLowerCase().contains(q);
+                }).toList();
 
-              return InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          BoxDetailScreen(item: item, index: index),
+                // ⭐ FAVORITES FIRST
+                filtered.sort((a, b) {
+                  if (a.isFavorite && !b.isFavorite) return -1;
+                  if (!a.isFavorite && b.isFavorite) return 1;
+                  return 0;
+                });
+
+                if (filtered.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      "No matching boxes found.",
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   );
+                }
 
-                  if (result == 'delete') {
-                    _deleteBox(index);
-                  }
-                },
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                return GridView.builder(
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.75,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(12),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final item = filtered[index];
+                    final originalIndex = box.values.toList().indexOf(item);
+
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BoxDetailScreen(
+                              item: item,
+                              index: originalIndex,
+                            ),
                           ),
-                          child: Container(
-                            width: double.infinity,
-                            height: double.infinity,
-                            color: Colors.grey[200],
-                            child:
-                                item.imagePaths != null &&
-                                    item.imagePaths!.isNotEmpty
-                                ? Image.file(
-                                    File(item.imagePaths!.first),
-                                    fit: BoxFit.cover,
-                                  )
-                                : const Center(
-                                    child: Icon(
-                                      Icons.inventory_2_outlined,
-                                      size: 50,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                          ),
+                        );
+
+                        if (result == 'delete') {
+                          _deleteBox(originalIndex);
+                        }
+                      },
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                      Container(
-                        height: 80,
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Center(
-                                    child: Text(
-                                      item.displayTitle,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                              flex: 3,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(12),
+                                ),
+                                child: Container(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  color: Colors.grey[200],
+                                  child: Stack(
+                                    children: [
+                                      // --- The Image ---
+                                      Positioned.fill(
+                                        child:
+                                            item.imagePaths != null &&
+                                                item.imagePaths!.isNotEmpty
+                                            ? Image.file(
+                                                File(item.imagePaths!.first),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Image.asset(
+                                                "assets/images/boxpicture.png",
+                                                fit: BoxFit.cover,
+                                              ),
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+
+                                      // ⭐ Favorite Icon
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              item.isFavorite =
+                                                  !item.isFavorite;
+                                              item.save(); // Hive persists
+                                            });
+                                          },
+                                          child: Icon(
+                                            item.isFavorite
+                                                ? Icons.star
+                                                : Icons.star_border,
+                                            color: item.isFavorite
+                                                ? Colors.amber
+                                                : Colors.white,
+                                            size: 26,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 2),
-                                ],
+                                ),
+                              ),
+                            ),
+                            Container(
+                              height: 80,
+                              padding: const EdgeInsets.all(12),
+                              child: Center(
+                                child: Text(
+                                  item.displayTitle,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

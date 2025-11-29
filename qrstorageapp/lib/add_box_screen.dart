@@ -2,7 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'models/box_item.dart';
+import 'package:qrstorageapp/models/box_item.dart';
+import 'package:qrstorageapp/utils/box_utils.dart';
 
 class AddBoxScreen extends StatefulWidget {
   final Box<BoxItem> box;
@@ -196,6 +197,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
             children: [
               // Title Field
               TextFormField(
+                key: const Key('titleField'),
                 controller: _titleController,
                 decoration: const InputDecoration(
                   labelText: 'Box Title',
@@ -214,6 +216,7 @@ class _AddBoxScreenState extends State<AddBoxScreen> {
 
               // Description Field (Required)
               TextFormField(
+                key: const Key('descriptionField'),
                 controller: _descriptionController,
                 decoration: const InputDecoration(
                   labelText: 'Description *',

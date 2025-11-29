@@ -19,12 +19,16 @@ class BoxItem extends HiveObject {
   @HiveField(4) // <-- NEW FIELD
   String? location; // garage, basement, attic, etc.
 
+  @HiveField(5) // <-- NEW FIELD
+  bool isFavorite; // to mark favorite boxes
+  
   BoxItem({
     required this.boxNumber,
     this.title,
     required this.description,
     this.imagePaths,
     this.location,
+    this.isFavorite = false,
   });
 
   // Getter to provide a default title if null

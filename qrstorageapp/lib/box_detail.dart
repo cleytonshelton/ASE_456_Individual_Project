@@ -107,6 +107,7 @@ class BoxDetailScreen extends StatelessWidget {
                     final path = item.imagePaths![index];
 
                     return GestureDetector(
+                      key: Key('photo_thumb_$index'),
                       onTap: () {
                         Navigator.push(
                           context,

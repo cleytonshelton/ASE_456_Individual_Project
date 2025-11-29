@@ -15,8 +15,8 @@ Future<void> main() async {
   Hive.registerAdapter(BoxItemAdapter());
   print('4️⃣ Adapter registered.');
 
-  await Hive.openBox<BoxItem>('boxes');
-  print('5️⃣ Box opened.');
+  var box = await Hive.openBox<BoxItem>('boxes');
+  print('5️⃣ Hive box opened.');
 
   // Initialize theme manager
   final themeManager = ThemeManager();
