@@ -36,5 +36,5 @@ Users can add, view, edit, delete, and search boxes.
 ## Notes
 
 - Location is optional
-- Box numbers must be unique
+- Box numbers are auto generated
 - Search is case-insensitive
